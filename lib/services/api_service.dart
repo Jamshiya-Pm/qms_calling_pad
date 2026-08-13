@@ -11,27 +11,13 @@ class ApiService {
 
   String get _baseUrl => _prefs.savedBaseUrl;
 
-  /// Helper to format URLs and bypass CORS during web requests
-  Uri _buildUri(String endpoint) {
-    final String rawUrl = '$_baseUrl$endpoint';
-
-    // If running on Web and hitting a local/HTTP server, route through a CORS proxy
-    if (kIsWeb) {
-      // You can use corsproxy.io or allorigins.win
-      final String proxiedUrl = 'https://corsproxy.io/?${Uri.encodeComponent(rawUrl)}';
-      return Uri.parse(proxiedUrl);
-    }
-
-    return Uri.parse(rawUrl);
-  }
-
   Future<Map<String, dynamic>> _post(
     String endpoint,
     Map<String, dynamic> body,
   ) async {
-    final url = _buildUri(endpoint);
-    print('📡 Final Target URL: $url');
-    print('📦 Request Body: ${jsonEncode(body)}');
+    final url = Uri.parse('$_baseUrl$endpoint');
+    print('📡 url: $url');
+    print('📦 dataer: ${jsonEncode(body)}');
 
     try {
       final response = await http
@@ -63,9 +49,7 @@ class ApiService {
     } catch (e) {
       print('❌ Network error: $e');
       if (kIsWeb) {
-        throw Exception(
-          'Network error on Web (CORS/Mixed Content restriction): $e',
-        );
+        throw Exception('Network error (Web/CORS check): $e');
       }
       throw Exception('Network error: $e');
     }
